@@ -39,8 +39,10 @@ function searchJobs(query, category = '') {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
+        console.log(`  Response status: ${res.statusCode}`);
         try {
           const json = JSON.parse(data);
+          console.log(`  Results count: ${json.count || 0}`);
           if (json.error) {
             console.log(`  ❌ API Error: ${json.error}`);
             resolve({ category, jobs: [] });
