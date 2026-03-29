@@ -1,0 +1,67 @@
+{
+  "last_updated": "2026-03-29",
+  "search_links": {
+    "linkedin_account_exec": "https://www.linkedin.com/jobs/search/?keywords=Account%20Executive&location=Dublin%2C%20Ireland&f_E=2%2C3",
+    "linkedin_sales": "https://www.linkedin.com/jobs/search/?keywords=Software%20Sales&location=Dublin%2C%20Ireland&f_E=2%2C3",
+    "linkedin_digital_marketing": "https://www.linkedin.com/jobs/search/?keywords=Digital%20Marketing&location=Dublin%2C%20Ireland&f_E=2%2C3",
+    "linkedin_media": "https://www.linkedin.com/jobs/search/?keywords=Media%20Account%20Executive&location=Dublin%2C%20Ireland&f_E=2%2C3",
+    "indeed_account_exec": "https://ie.indeed.com/jobs?q=account+executive&l=Dublin",
+    "indeed_digital_marketing": "https://ie.indeed.com/jobs?q=digital+marketing&l=Dublin",
+    "glassdoor": "https://www.glassdoor.ie/Job/dublin-account-executive-jobs-SRCH_IL.0,6_IC2739035_KO7,24.htm",
+    "irishjobs": "https://www.irishjobs.ie/jobs/account-executive/in-dublin"
+  },
+  "target_company_careers": {
+    "salesforce": "https://careers.salesforce.com/en/jobs/?search=&location=Dublin%2C+Ireland",
+    "microsoft": "https://careers.microsoft.com/us/en/search-results?keywords=&location=Dublin,%20Ireland",
+    "meta": "https://www.metacareers.com/jobs?offices[0]=Dublin%2C%20Ireland",
+    "google": "https://careers.google.com/jobs/results/?location=Dublin,%20Ireland",
+    "wpp": "https://www.wpp.com/careers"
+  },
+  "jobs": [
+    {
+      "id": "meta-am-smb",
+      "title": "Account Manager, SMB, UKI",
+      "company": "Meta",
+      "location": "Dublin",
+      "type": "Contract (10 months)",
+      "posted": "3 days ago",
+      "link": "https://www.linkedin.com/jobs/search/?keywords=Account%20Manager%20SMB&location=Dublin&f_C=10667"
+    },
+    {
+      "id": "google-shopping",
+      "title": "Account Manager, Google Shopping Solutions (Early Careers)",
+      "company": "Google",
+      "location": "Dublin",
+      "type": "Full-time",
+      "posted": "2 weeks ago",
+      "link": "https://careers.google.com/jobs/results/?location=Dublin,%20Ireland&q=Account%20Manager"
+    },
+    {
+      "id": "hubspot-ae",
+      "title": "Account Executive - Small Business",
+      "company": "HubSpot",
+      "location": "Dublin (Remote/Hybrid)",
+      "type": "Full-time",
+      "posted": "4 days ago",
+      "link": "https://www.linkedin.com/jobs/search/?keywords=Account%20Executive&f_C=2454124&location=Dublin"
+    },
+    {
+      "id": "docusign-ae",
+      "title": "Account Executive, Mid-Market",
+      "company": "Docusign",
+      "location": "Dublin",
+      "type": "Full-time",
+      "posted": "1 week ago",
+      "link": "https://www.linkedin.com/jobs/search/?keywords=Account%20Executive&f_C=21438&location=Dublin"
+    },
+    {
+      "id": "uber-ae",
+      "title": "Account Executive, Uber Eats Ireland",
+      "company": "Uber",
+      "location": "Dublin",
+      "type": "Full-time",
+      "posted": "6 days ago",
+      "link": "https://www.linkedin.com/jobs/search/?keywords=Account%20Executive&f_C=1815218&location=Dublin"
+    }
+  ]
+}

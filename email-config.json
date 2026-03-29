@@ -1,0 +1,14 @@
+{
+  "smtp": {
+    "host": "smtp.gmail.com",
+    "port": 587,
+    "secure": false,
+    "auth": {
+      "user": "neyveliabi@gmail.com",
+      "pass": "dvwmofsfatewqqpp"
+    }
+  },
+  "from": "Abishek <neyveliabi@gmail.com>",
+  "to": "revriya1021@gmail.com",
+  "subject_prefix": "🎯 Job Digest for Revathi"
+}

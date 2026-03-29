@@ -1,0 +1,121 @@
+{
+  "target_roles": [
+    "Media Account Executive",
+    "Software Sales Specialist", 
+    "Communications Account Executive",
+    "Digital Marketing"
+  ],
+  "location": "Dublin, Ireland",
+  "remote_ok": true,
+  "hybrid_ok": true,
+  "experience_levels": ["Entry", "Mid"],
+  "target_companies": [
+    {
+      "name": "Salesforce",
+      "careers_url": "https://careers.salesforce.com/en/jobs/?location=Dublin",
+      "priority": true
+    },
+    {
+      "name": "Microsoft",
+      "careers_url": "https://careers.microsoft.com/us/en/search-results?location=Dublin,%20Ireland",
+      "priority": true
+    },
+    {
+      "name": "Meta",
+      "careers_url": "https://www.metacareers.com/jobs/?offices[0]=Dublin%2C%20Ireland",
+      "priority": true
+    },
+    {
+      "name": "Google",
+      "careers_url": "https://careers.google.com/jobs/results/?location=Dublin,%20Ireland",
+      "priority": true
+    },
+    {
+      "name": "WPP",
+      "careers_url": "https://www.wpp.com/careers",
+      "priority": true
+    },
+    {
+      "name": "Toast",
+      "careers_url": "https://careers.toasttab.com/jobs?location=Dublin",
+      "priority": true
+    },
+    {
+      "name": "Sojern",
+      "careers_url": "https://www.sojern.com/careers",
+      "priority": true
+    },
+    {
+      "name": "Deago",
+      "careers_url": null,
+      "notes": "Need to find careers page",
+      "priority": true
+    },
+    {
+      "name": "HubSpot",
+      "careers_url": "https://www.hubspot.com/careers/jobs?page=1&locations=Dublin",
+      "priority": false
+    },
+    {
+      "name": "Uber",
+      "careers_url": "https://www.uber.com/us/en/careers/list/?location=IRL-Dublin",
+      "priority": false
+    },
+    {
+      "name": "Docusign",
+      "careers_url": "https://careers.docusign.com/jobs?location=Dublin",
+      "priority": false
+    },
+    {
+      "name": "Zendesk",
+      "careers_url": "https://jobs.zendesk.com/us/en/search-results?location=Dublin",
+      "priority": false
+    },
+    {
+      "name": "PandaDoc",
+      "careers_url": "https://www.pandadoc.com/careers/",
+      "priority": false
+    }
+  ],
+  "job_boards": [
+    {
+      "name": "LinkedIn",
+      "search_urls": {
+        "account_exec": "https://www.linkedin.com/jobs/search/?keywords=Account%20Executive&location=Dublin%2C%20Ireland&f_E=2%2C3",
+        "software_sales": "https://www.linkedin.com/jobs/search/?keywords=Software%20Sales&location=Dublin%2C%20Ireland&f_E=2%2C3",
+        "digital_marketing": "https://www.linkedin.com/jobs/search/?keywords=Digital%20Marketing&location=Dublin%2C%20Ireland&f_E=2%2C3",
+        "communications": "https://www.linkedin.com/jobs/search/?keywords=Communications%20Executive&location=Dublin%2C%20Ireland"
+      }
+    },
+    {
+      "name": "Indeed Ireland",
+      "search_urls": {
+        "account_exec": "https://ie.indeed.com/jobs?q=account+executive&l=Dublin",
+        "digital_marketing": "https://ie.indeed.com/jobs?q=digital+marketing&l=Dublin",
+        "communications": "https://ie.indeed.com/jobs?q=communications+executive&l=Dublin"
+      }
+    },
+    {
+      "name": "Glassdoor",
+      "search_urls": {
+        "account_exec": "https://www.glassdoor.ie/Job/dublin-account-executive-jobs-SRCH_IL.0,6_IC2739035_KO7,24.htm"
+      }
+    },
+    {
+      "name": "IrishJobs",
+      "search_urls": {
+        "account_exec": "https://www.irishjobs.ie/jobs/account-executive/in-dublin"
+      }
+    }
+  ],
+  "schedule": {
+    "frequency": "daily",
+    "time": "08:00",
+    "timezone": "Europe/Dublin"
+  },
+  "delivery": {
+    "method": "email",
+    "to": "revriya1021@gmail.com",
+    "from": "neyveliabi@gmail.com"
+  }
+}
