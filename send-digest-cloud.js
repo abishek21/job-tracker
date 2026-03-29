@@ -29,10 +29,11 @@ function searchJobs(query, category = '') {
       what: query,
       where: 'Dublin',
       sort_by: 'date',
-      max_days_old: 14
+      max_days_old: 30
     });
     
     const url = `https://api.adzuna.com/v1/api/jobs/${ADZUNA_COUNTRY}/search/1?${params}`;
+    console.log(`  Searching: ${query}...`);
     
     https.get(url, (res) => {
       let data = '';
@@ -40,6 +41,11 @@ function searchJobs(query, category = '') {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
+          if (json.error) {
+            console.log(`  ❌ API Error: ${json.error}`);
+            resolve({ category, jobs: [] });
+            return;
+          }
           const jobs = (json.results || []).map(job => ({
             title: job.title,
             company: job.company?.display_name || 'Company',
@@ -50,10 +56,15 @@ function searchJobs(query, category = '') {
           }));
           resolve({ category, jobs });
         } catch (e) {
+          console.log(`  ❌ Parse error: ${e.message}`);
+          console.log(`  Raw response: ${data.substring(0, 200)}`);
           resolve({ category, jobs: [] });
         }
       });
-    }).on('error', () => resolve({ category, jobs: [] }));
+    }).on('error', (e) => {
+      console.log(`  ❌ Network error: ${e.message}`);
+      resolve({ category, jobs: [] });
+    });
   });
 }
 
@@ -66,14 +77,15 @@ async function sendJobDigest() {
   });
 
   console.log('🔍 Searching for live jobs...');
+  console.log(`  API ID: ${ADZUNA_APP_ID ? 'Set ✓' : 'MISSING ❌'}`);
+  console.log(`  API Key: ${ADZUNA_API_KEY ? 'Set ✓' : 'MISSING ❌'}`);
   
   // Search for each role category
   const searches = await Promise.all([
     searchJobs('Account Executive', '📊 Account Executive'),
-    searchJobs('Media Account Manager', '📺 Media / Advertising'),
-    searchJobs('Software Sales', '💻 Software Sales'),
-    searchJobs('Digital Marketing', '📱 Digital Marketing'),
-    searchJobs('Communications Executive', '📢 Communications')
+    searchJobs('Sales', '💻 Sales & Business Development'),
+    searchJobs('Marketing', '📱 Marketing'),
+    searchJobs('Communications', '📢 Communications')
   ]);
 
   // Build jobs by category (only include categories with results)
@@ -90,10 +102,7 @@ async function sendJobDigest() {
     }
   }
 
-  if (totalJobs === 0) {
-    console.log('⚠️ No jobs found today. Skipping email.');
-    return;
-  }
+  console.log(`\n📊 Total jobs found: ${totalJobs}`);
 
   // Quick search links (these always work)
   const searchLinks = {
@@ -103,6 +112,46 @@ async function sendJobDigest() {
     'Glassdoor Dublin': 'https://www.glassdoor.ie/Job/dublin-account-executive-jobs-SRCH_IL.0,6_IC2739035_KO7,24.htm',
     'Jobs.ie': 'https://www.jobs.ie/jobs/dublin/sales/'
   };
+
+  // If no jobs found, still send email with search links
+  if (totalJobs === 0) {
+    console.log('⚠️ No jobs from API, sending email with search links only...');
+    
+    const html = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; border-radius: 12px 12px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">🎯 Job Digest for Revathi</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">${today}</p>
+        </div>
+        
+        <div style="background: white; padding: 24px; border: 1px solid #e0e0e0; border-top: none;">
+          <p style="color: #5f6368;">No new matching jobs found in the last 30 days. Check these job boards for the latest listings:</p>
+          
+          <div style="margin-top: 20px;">
+            ${Object.entries(searchLinks).map(([name, url]) => 
+              `<a href="${url}" style="display: inline-block; margin: 6px 8px 6px 0; padding: 12px 20px; background: #e8f0fe; border-radius: 8px; color: #1a73e8; text-decoration: none; font-size: 14px;">${name}</a>`
+            ).join('')}
+          </div>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 16px 24px; border-radius: 0 0 12px 12px; border: 1px solid #e0e0e0; border-top: none;">
+          <p style="color: #5f6368; font-size: 12px; margin: 0;">
+            Sent with ❤️ by Abishek's AI Assistant
+          </p>
+        </div>
+      </div>
+    `;
+
+    const info = await transporter.sendMail({
+      from: `Abishek <${process.env.GMAIL_USER}>`,
+      to: process.env.EMAIL_TO,
+      subject: `🎯 Job Update for Revathi — ${today}`,
+      html: html
+    });
+
+    console.log('✅ Email sent (with search links):', info.messageId);
+    return;
+  }
 
   // Build HTML sections
   const sectionsHtml = Object.entries(jobsByCategory).map(([category, jobs]) => {
@@ -152,7 +201,7 @@ async function sendJobDigest() {
       
       <div style="background: #f8f9fa; padding: 16px 24px; border-radius: 0 0 12px 12px; border: 1px solid #e0e0e0; border-top: none;">
         <p style="color: #5f6368; font-size: 12px; margin: 0;">
-          ✨ These are <strong>real, live job listings</strong> from the past 14 days<br>
+          ✨ These are <strong>real, live job listings</strong> from the past 30 days<br>
           Sent with ❤️ by Abishek's AI Assistant
         </p>
       </div>
