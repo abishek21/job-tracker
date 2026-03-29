@@ -33,7 +33,7 @@ function searchJobs(query, category = '') {
     });
     
     const url = `https://api.adzuna.com/v1/api/jobs/${ADZUNA_COUNTRY}/search/1?${params}`;
-    console.log(`  Searching: ${query}...`);
+    console.log(`  URL: ${url.replace(ADZUNA_API_KEY, '***')}`);
     
     https.get(url, (res) => {
       let data = '';
