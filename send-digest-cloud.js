@@ -80,13 +80,24 @@ async function sendJobDigest() {
   console.log(`  API ID: ${ADZUNA_APP_ID ? 'Set ✓' : 'MISSING ❌'}`);
   console.log(`  API Key: ${ADZUNA_API_KEY ? 'Set ✓' : 'MISSING ❌'}`);
   
-  // Search for each role category
-  const searches = await Promise.all([
-    searchJobs('Account Executive', '📊 Account Executive'),
-    searchJobs('Sales', '💻 Sales & Business Development'),
-    searchJobs('Marketing', '📱 Marketing'),
-    searchJobs('Communications', '📢 Communications')
-  ]);
+  // Helper to wait
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+  
+  // Search for each role category (with delays to avoid rate limiting)
+  const searches = [];
+  
+  const queries = [
+    ['Account Executive', '📊 Account Executive'],
+    ['Sales', '💻 Sales & Business Development'],
+    ['Marketing', '📱 Marketing'],
+    ['Communications', '📢 Communications']
+  ];
+  
+  for (const [query, category] of queries) {
+    const result = await searchJobs(query, category);
+    searches.push(result);
+    await delay(2000); // Wait 2 seconds between requests
+  }
 
   // Build jobs by category (only include categories with results)
   const jobsByCategory = {};
