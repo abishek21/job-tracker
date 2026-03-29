@@ -7,7 +7,7 @@ const https = require('https');
 // Adzuna API config
 const ADZUNA_APP_ID = process.env.ADZUNA_APP_ID;
 const ADZUNA_API_KEY = process.env.ADZUNA_API_KEY;
-const ADZUNA_COUNTRY = 'ie'; // Ireland
+const ADZUNA_COUNTRY = 'gb'; // UK (includes Ireland jobs)
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
