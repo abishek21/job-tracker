@@ -1,7 +1,13 @@
 #!/usr/bin/env node
-// Cloud-based Job Digest Sender (GitHub Actions)
+// Cloud-based Job Digest Sender with LIVE job search via Adzuna API
 
 const nodemailer = require('nodemailer');
+const https = require('https');
+
+// Adzuna API config
+const ADZUNA_APP_ID = process.env.ADZUNA_APP_ID;
+const ADZUNA_API_KEY = process.env.ADZUNA_API_KEY;
+const ADZUNA_COUNTRY = 'ie'; // Ireland
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -13,6 +19,44 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Search Adzuna for jobs
+function searchJobs(query, category = '') {
+  return new Promise((resolve, reject) => {
+    const params = new URLSearchParams({
+      app_id: ADZUNA_APP_ID,
+      app_key: ADZUNA_API_KEY,
+      results_per_page: 10,
+      what: query,
+      where: 'Dublin',
+      sort_by: 'date',
+      max_days_old: 14
+    });
+    
+    const url = `https://api.adzuna.com/v1/api/jobs/${ADZUNA_COUNTRY}/search/1?${params}`;
+    
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          const jobs = (json.results || []).map(job => ({
+            title: job.title,
+            company: job.company?.display_name || 'Company',
+            location: job.location?.display_name || 'Dublin',
+            posted: new Date(job.created).toLocaleDateString('en-IE'),
+            link: job.redirect_url,
+            salary: job.salary_min ? `€${Math.round(job.salary_min/1000)}k - €${Math.round(job.salary_max/1000)}k` : null
+          }));
+          resolve({ category, jobs });
+        } catch (e) {
+          resolve({ category, jobs: [] });
+        }
+      });
+    }).on('error', () => resolve({ category, jobs: [] }));
+  });
+}
+
 async function sendJobDigest() {
   const today = new Date().toLocaleDateString('en-IE', { 
     weekday: 'long', 
@@ -21,58 +65,61 @@ async function sendJobDigest() {
     day: 'numeric' 
   });
 
-  const jobsByCategory = {
-    '📊 Account Executive / Media': [
-      { title: 'Account Manager, SMB, UKI', company: 'Meta', location: 'Dublin', posted: 'Recent', link: 'https://www.metacareers.com/jobs/?q=account%20manager&location=Dublin' },
-      { title: 'Account Executive', company: 'WPP Media', location: 'Dublin', posted: 'Recent', link: 'https://www.wpp.com/careers' },
-      { title: 'Account Executive - Small Business', company: 'HubSpot', location: 'Dublin (Hybrid)', posted: 'Recent', link: 'https://www.hubspot.com/careers/jobs?page=1&locations=Dublin' },
-      { title: 'Account Executive', company: 'Docusign', location: 'Dublin', posted: 'Recent', link: 'https://careers.docusign.com/jobs?location=Dublin' },
-      { title: 'Account Executive, Uber Eats', company: 'Uber', location: 'Dublin', posted: 'Recent', link: 'https://www.uber.com/us/en/careers/list/?location=IRL-Dublin' }
-    ],
-    '💻 Software Sales': [
-      { title: 'Account Manager, Shopping Solutions', company: 'Google', location: 'Dublin', posted: 'Recent', link: 'https://careers.google.com/jobs/results/?location=Dublin,%20Ireland&q=Account%20Manager' },
-      { title: 'Account Executive', company: 'Salesforce', location: 'Dublin', posted: 'Multiple', link: 'https://careers.salesforce.com/en/jobs/?search=account+executive&location=Dublin' },
-      { title: 'Sales Development Rep', company: 'Microsoft', location: 'Dublin', posted: 'Multiple', link: 'https://careers.microsoft.com/us/en/search-results?keywords=sales&location=Dublin,%20Ireland' },
-      { title: 'Account Executive', company: 'Zendesk', location: 'Dublin', posted: 'Recent', link: 'https://jobs.zendesk.com/us/en/search-results?keywords=account%20executive&location=Dublin' },
-      { title: 'Account Executive', company: 'Toast', location: 'Dublin', posted: 'Recent', link: 'https://careers.toasttab.com/jobs?location=Dublin' }
-    ],
-    '📱 Digital Marketing': [
-      { title: 'Digital Marketing Executive', company: 'Various', location: 'Dublin', posted: 'Recent', link: 'https://www.linkedin.com/jobs/search/?keywords=Digital%20Marketing%20Executive&location=Dublin' },
-      { title: 'Social Media Manager', company: 'Various', location: 'Dublin', posted: 'Recent', link: 'https://ie.indeed.com/jobs?q=social+media+manager&l=Dublin' },
-      { title: 'Marketing Associate', company: 'Various', location: 'Dublin', posted: 'Recent', link: 'https://ie.indeed.com/jobs?q=marketing+entry+level&l=Dublin' }
-    ],
-    '📢 Communications': [
-      { title: 'Communications Executive', company: 'Various', location: 'Dublin', posted: 'Recent', link: 'https://www.linkedin.com/jobs/search/?keywords=Communications%20Executive&location=Dublin' },
-      { title: 'PR & Comms Coordinator', company: 'Various', location: 'Dublin', posted: 'Recent', link: 'https://ie.indeed.com/jobs?q=communications+coordinator&l=Dublin' }
-    ]
-  };
+  console.log('🔍 Searching for live jobs...');
+  
+  // Search for each role category
+  const searches = await Promise.all([
+    searchJobs('Account Executive', '📊 Account Executive'),
+    searchJobs('Media Account Manager', '📺 Media / Advertising'),
+    searchJobs('Software Sales', '💻 Software Sales'),
+    searchJobs('Digital Marketing', '📱 Digital Marketing'),
+    searchJobs('Communications Executive', '📢 Communications')
+  ]);
 
+  // Build jobs by category (only include categories with results)
+  const jobsByCategory = {};
+  let totalJobs = 0;
+  
+  for (const { category, jobs } of searches) {
+    if (jobs.length > 0) {
+      jobsByCategory[category] = jobs;
+      totalJobs += jobs.length;
+      console.log(`  ✓ ${category}: ${jobs.length} jobs found`);
+    } else {
+      console.log(`  ✗ ${category}: No jobs found`);
+    }
+  }
+
+  if (totalJobs === 0) {
+    console.log('⚠️ No jobs found today. Skipping email.');
+    return;
+  }
+
+  // Quick search links (these always work)
   const searchLinks = {
-    'LinkedIn Account Exec': 'https://www.linkedin.com/jobs/search/?keywords=Account%20Executive&location=Dublin%2C%20Ireland&f_E=2%2C3',
-    'LinkedIn Software Sales': 'https://www.linkedin.com/jobs/search/?keywords=Software%20Sales&location=Dublin%2C%20Ireland',
-    'LinkedIn Digital Marketing': 'https://www.linkedin.com/jobs/search/?keywords=Digital%20Marketing&location=Dublin%2C%20Ireland',
-    'Indeed Dublin': 'https://ie.indeed.com/jobs?q=account+executive&l=Dublin',
-    'Salesforce Careers': 'https://careers.salesforce.com/en/jobs/?location=Dublin',
-    'Microsoft Careers': 'https://careers.microsoft.com/us/en/search-results?location=Dublin',
-    'Meta Careers': 'https://www.metacareers.com/jobs/?offices[0]=Dublin%2C%20Ireland',
-    'Google Careers': 'https://careers.google.com/jobs/results/?location=Dublin,%20Ireland'
+    'LinkedIn Dublin Jobs': 'https://www.linkedin.com/jobs/search/?keywords=Account%20Executive&location=Dublin%2C%20Ireland&f_E=2%2C3',
+    'Indeed Ireland': 'https://ie.indeed.com/jobs?q=account+executive&l=Dublin',
+    'IrishJobs.ie': 'https://www.irishjobs.ie/jobs/account-executive/in-dublin',
+    'Glassdoor Dublin': 'https://www.glassdoor.ie/Job/dublin-account-executive-jobs-SRCH_IL.0,6_IC2739035_KO7,24.htm',
+    'Jobs.ie': 'https://www.jobs.ie/jobs/dublin/sales/'
   };
 
-  // Build HTML
+  // Build HTML sections
   const sectionsHtml = Object.entries(jobsByCategory).map(([category, jobs]) => {
     const jobListHtml = jobs.map(job => `
       <tr>
-        <td style="padding: 12px; border-bottom: 1px solid #eee;">
+        <td style="padding: 14px; border-bottom: 1px solid #eee;">
           <a href="${job.link}" style="color: #1a73e8; text-decoration: none; font-weight: 600; font-size: 15px;">${job.title}</a><br>
           <span style="color: #202124;">🏢 ${job.company}</span> · <span style="color: #5f6368;">📍 ${job.location}</span><br>
-          <span style="color: #80868b; font-size: 12px;">⏰ ${job.posted}</span>
+          <span style="color: #80868b; font-size: 12px;">📅 Posted: ${job.posted}</span>
+          ${job.salary ? `<br><span style="color: #137333; font-size: 12px;">💰 ${job.salary}</span>` : ''}
         </td>
       </tr>
     `).join('');
 
     return `
-      <div style="margin-bottom: 24px;">
-        <h2 style="color: #202124; font-size: 16px; margin: 0 0 12px 0; padding: 8px 12px; background: #f8f9fa; border-radius: 8px;">${category}</h2>
+      <div style="margin-bottom: 28px;">
+        <h2 style="color: #202124; font-size: 16px; margin: 0 0 12px 0; padding: 10px 14px; background: linear-gradient(90deg, #f0f4ff 0%, #f8f9fa 100%); border-radius: 8px; border-left: 4px solid #667eea;">${category}</h2>
         <table style="width: 100%; border-collapse: collapse;">
           ${jobListHtml}
         </table>
@@ -89,13 +136,14 @@ async function sendJobDigest() {
       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; border-radius: 12px 12px 0 0;">
         <h1 style="color: white; margin: 0; font-size: 24px;">🎯 Job Digest for Revathi</h1>
         <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">${today}</p>
+        <p style="color: rgba(255,255,255,0.8); margin: 4px 0 0 0; font-size: 14px;">📍 ${totalJobs} live jobs in Dublin</p>
       </div>
       
       <div style="background: white; padding: 24px; border: 1px solid #e0e0e0; border-top: none;">
         ${sectionsHtml}
         
         <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #f1f3f4;">
-          <h3 style="color: #202124; font-size: 14px; margin: 0 0 12px 0;">🔍 Quick Search Links</h3>
+          <h3 style="color: #202124; font-size: 14px; margin: 0 0 12px 0;">🔍 Explore More Jobs</h3>
           <div>
             ${searchLinksHtml}
           </div>
@@ -104,8 +152,8 @@ async function sendJobDigest() {
       
       <div style="background: #f8f9fa; padding: 16px 24px; border-radius: 0 0 12px 12px; border: 1px solid #e0e0e0; border-top: none;">
         <p style="color: #5f6368; font-size: 12px; margin: 0;">
-          Sent with ❤️ by Abishek's AI Assistant<br>
-          <em>Target: Dublin | Entry & Mid Level | Remote/Hybrid OK</em>
+          ✨ These are <strong>real, live job listings</strong> from the past 14 days<br>
+          Sent with ❤️ by Abishek's AI Assistant
         </p>
       </div>
     </div>
@@ -114,7 +162,7 @@ async function sendJobDigest() {
   const info = await transporter.sendMail({
     from: `Abishek <${process.env.GMAIL_USER}>`,
     to: process.env.EMAIL_TO,
-    subject: `🎯 Job Digest for Revathi — ${today}`,
+    subject: `🎯 ${totalJobs} New Jobs for Revathi — ${today}`,
     html: html
   });
 
